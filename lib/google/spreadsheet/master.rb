@@ -75,7 +75,7 @@ module Google
           base_collection   = session.collection_by_url(base_collection_url)
           backup_collection = base_collection.create_subcollection(backup_collection_name)
 
-          base_index_ss = drive.spreadsheet_by_key(base_index_ss_key)
+          base_index_ss = session.spreadsheet_by_key(base_index_ss_key)
           base_index_ws = base_index_ss.worksheet_by_title(@index_ws_title)
           base_ss_keys  = base_index_ws.populated_rows.map { |row| row.key }
 
