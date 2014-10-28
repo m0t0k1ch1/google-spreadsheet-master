@@ -99,7 +99,7 @@ module Google
 
           backup_index_ws.save
 
-          return backup_collection.contents_url
+          return backup_collection.human_url
         end
       end
     end
