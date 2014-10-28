@@ -77,14 +77,16 @@ module Google
 
           base_index_ss = session.spreadsheet_by_key(base_index_ss_key)
           base_index_ws = base_index_ss.worksheet_by_title(@index_ws_title)
-          base_ss_keys  = base_index_ws.populated_rows.map { |row| row.key }
 
-          backup_index_ss = base_index_ss.duplicate
+          backup_index_ss = base_index_ss.duplicate(base_index_ss.title)
           backup_index_ws = backup_index_ss.worksheet_by_title(@index_ws_title)
 
+          backup_collection.add(backup_index_ss)
+
+          base_ss_keys = base_index_ws.populated_rows.map { |row| row.key }
           base_ss_keys.uniq.each do |base_ss_key|
             base_ss   = session.spreadsheet_by_key(base_ss_key)
-            backup_ss = base_ss.duplicate
+            backup_ss = base_ss.duplicate(base_ss.title)
 
             backup_index_ws.populated_rows.each do |row|
               if row.key == base_ss_key then
