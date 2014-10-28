@@ -6,18 +6,16 @@ Utility methods for handling google spreadsheet
 
 Add this line to your application's Gemfile:
 
-```ruby
+``` ruby
 gem 'google-spreadsheet-master', :git => 'https://github.com/m0t0k1ch1/google-drive-master.git', :branch => 'master'
 gem 'google_drive_alias', :git => 'https://github.com/sumipan/google_drive_alias.rb.git', :branch => 'master'
 ```
 
 And then execute:
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install google-spreadsheet-master
+``` sh
+$ bundle
+```
 
 ## Usage
 
