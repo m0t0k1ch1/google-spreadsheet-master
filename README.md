@@ -19,7 +19,12 @@ $ bundle
 
 ## Usage
 
-TODO: Write usage instructions here
+``` ruby
+client = Google::Spreadsheet::Master::Client.new(
+  'your-google-service-account-email',
+  'path-to-your-pem-file',   # default: 'client.pem'
+)
+```
 
 ## Contributing
 
