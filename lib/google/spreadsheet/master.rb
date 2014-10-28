@@ -1,5 +1,4 @@
 require "google/spreadsheet/master/version"
-
 require 'google_drive/alias'
 
 module Google
