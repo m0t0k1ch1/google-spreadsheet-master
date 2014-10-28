@@ -1,4 +1,3 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in google-spreadsheet-master.gemspec
-gemspec
+gem 'google_drive_alias', :git => 'https://github.com/sumipan/google_drive_alias.rb.git', :branch => 'master'
