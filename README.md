@@ -1,6 +1,6 @@
 # Google::Spreadsheet::Master
 
-TODO: Write a gem description
+utility methods for handling google spreadsheet
 
 ## Installation
 
