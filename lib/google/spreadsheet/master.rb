@@ -98,6 +98,8 @@ module Google
           end
 
           backup_index_ws.save
+
+          return backup_collection.contents_url
         end
       end
     end
