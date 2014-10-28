@@ -1,6 +1,6 @@
 # Google::Spreadsheet::Master
 
-utility methods for handling google spreadsheet
+Utility methods for handling google spreadsheet
 
 ## Installation
 

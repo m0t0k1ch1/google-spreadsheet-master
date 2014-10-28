@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Google::Spreadsheet::Master::VERSION
   spec.authors       = ["m0t0k1ch1"]
   spec.email         = ["m0t0k1ch1.310@gmail.com"]
-  spec.summary       = %q{utility methods for handling google spreadsheet}
-  spec.description   = %q{utility methods for handling google spreadsheet}
+  spec.summary       = %q{Utility methods for handling google spreadsheet}
+  spec.description   = %q{Utility methods for handling google spreadsheet}
   spec.homepage      = ""
   spec.license       = "MIT"
 
