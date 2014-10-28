@@ -9,10 +9,14 @@ module Google
       AUDIENCE             = 'https://accounts.google.com/o/oauth2/token'
       SCOPE                = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
 
+      INDEX_WS_TITLE_DEFAULT = 'table_map'
+      attr_accessor :index_ws_title
+
       class Client
         def initialize(issuer, pem_path='client.pem')
-          @issuer      = issuer
-          @signing_key = Google::APIClient::KeyUtils.load_from_pem(pem_path, 'notasecret')
+          @issuer         = issuer
+          @signing_key    = Google::APIClient::KeyUtils.load_from_pem(pem_path, 'notasecret')
+          @index_ws_title = INDEX_WS_TITLE_DEFAULT
         end
 
         def client
@@ -65,18 +69,33 @@ module Google
           end
         end
 
-        def backup(base_collection_url, backup_collection_name="backup")
+        def backup(base_index_ss_key, base_collection_url, backup_collection_name="backup")
           session = self.session
 
           base_collection   = session.collection_by_url(base_collection_url)
           backup_collection = base_collection.create_subcollection(backup_collection_name)
 
-          base_collection.files.each do |base_file|
-            if base_file.class == GoogleDrive::Spreadsheet then
-              file = base_file.duplicate(base_file.title)
-              backup_collection.add(file)
+          base_index_ss = drive.spreadsheet_by_key(base_index_ss_key)
+          base_index_ws = base_index_ss.worksheet_by_title(@index_ws_title)
+          base_ss_keys  = base_index_ws.populated_rows.map { |row| row.key }
+
+          backup_index_ss = base_index_ss.duplicate
+          backup_index_ws = backup_index_ss.worksheet_by_title(@index_ws_title)
+
+          base_ss_keys.uniq.each do |base_ss_key|
+            base_ss   = session.spreadsheet_by_key(base_ss_key)
+            backup_ss = base_ss.duplicate
+
+            backup_index_ws.populated_rows.each do |row|
+              if row.key == base_ss_key then
+                row.key = backup_ss.key
+              end
             end
+
+            backup_collection.add(backup_ss)
           end
+
+          backup_index_ws.save
         end
       end
     end
