@@ -1,22 +1,24 @@
+require 'logger'
 require 'google/spreadsheet/master/version'
 require 'google_drive/alias'
 
 module Google
   module Spreadsheet
     module Master
-      APPLICATION_NAME     = 'master'
-      TOKEN_CREDENTIAL_URI = 'https://accounts.google.com/o/oauth2/token'
-      AUDIENCE             = 'https://accounts.google.com/o/oauth2/token'
-      SCOPE                = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
-
+      APPLICATION_NAME       = 'master'
+      TOKEN_CREDENTIAL_URI   = 'https://accounts.google.com/o/oauth2/token'
+      AUDIENCE               = 'https://accounts.google.com/o/oauth2/token'
+      SCOPE                  = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
       INDEX_WS_TITLE_DEFAULT = 'table_map'
-      attr_accessor :index_ws_title
+
+      attr_accessor :index_ws_title, :logger
 
       class Client
         def initialize(issuer, pem_path='client.pem')
           @issuer         = issuer
           @signing_key    = Google::APIClient::KeyUtils.load_from_pem(pem_path, 'notasecret')
           @index_ws_title = INDEX_WS_TITLE_DEFAULT
+          @logger         = Logger.new(STDOUT)
         end
 
         def client
@@ -125,7 +127,8 @@ module Google
           ss_keys.each do |ss_key|
             if backup_ss_keys.include?(ss_key) then
               backup_collection.delete
-              raise 'fail in duplication'
+              @logger.warn 'fail in duplication'
+              raise
             end
           end
 
@@ -144,7 +147,7 @@ module GoogleDrive
       base_ws   = self.worksheet_by_title(ws_title)
       target_ws = target_ss.worksheet_by_title(ws_title)
       unless base_ws.same_header?(target_ws) then
-        p "can not merge worksheet: #{target_ws.title}"
+        @logger.warn "can not merge worksheet: #{target_ws.title}"
         return false
       end
       return true
@@ -152,7 +155,8 @@ module GoogleDrive
 
     define_method 'merge' do |diff_ss, ws_title|
       unless self.can_merge?(diff_ss, ws_title) then
-        raise "can not merge spreadsheet: #{diff_ss.title}"
+        @logger.warn "can not merge spreadsheet: #{diff_ss.title}"
+        raise
       end
 
       base_ws = self.worksheet_by_title(ws_title)
