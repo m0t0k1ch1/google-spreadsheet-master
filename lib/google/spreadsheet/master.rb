@@ -91,8 +91,9 @@ module Google
 
           begin
             self.merge_by_index_ws(backup_index_ws, diff_index_ws)
-          rescue
+          rescue => e
             backup_collection.delete
+            @logger.fatal e.message
           end
         end
 
