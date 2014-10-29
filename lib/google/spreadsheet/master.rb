@@ -16,7 +16,7 @@ module GoogleDrive
 
     define_method 'merge' do |diff_ss, ws_titles=[]|
       unless self.can_merge?(diff_ss, ws_titles) then
-        raise "can not merge ss: #{ss.title}"
+        raise "can not merge ss: #{diff_ss.title}"
       end
 
       ws_titles.each do |ws_title|
