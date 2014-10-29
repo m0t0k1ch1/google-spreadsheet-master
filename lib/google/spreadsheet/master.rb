@@ -1,49 +1,6 @@
 require "google/spreadsheet/master/version"
 require 'google_drive/alias'
 
-module GoogleDrive
-  class Spreadsheet
-    define_method 'can_merge?' do |target_ss, ws_titles=[]|
-      ws_titles.each do |ws_title|
-        base_ws   = self.worksheet_by_title(ws_title)
-        target_ws = target_ss.worksheet_by_title(ws_title)
-        unless base_ws.same_header?(target_ws) then
-          p "can not merge ws: #{target_ws.title}"
-          return false
-        end
-      end
-      return true
-    end
-
-    define_method 'merge' do |diff_ss, ws_titles=[]|
-      unless self.can_merge?(diff_ss, ws_titles) then
-        raise "can not merge ss: #{diff_ss.title}"
-      end
-
-      ws_titles.each do |ws_title|
-        base_ws = self.worksheet_by_title(ws_title)
-        diff_ws = diff_ss.worksheet_by_title(ws_title)
-
-        diff_rows = diff_ws.populated_rows
-        diff_rows.each do |diff_row|
-          row = base_ws.append_row
-          diff_ws.header.each do |column|
-            row.send("#{column}=", diff_row.send("#{column}"))
-          end
-        end
-
-        base_ws.save
-      end
-    end
-  end
-
-  class Worksheet
-    define_method 'same_header?' do |ws|
-      return self.header == ws.header
-    end
-  end
-end
-
 module Google
   module Spreadsheet
     module Master
@@ -85,10 +42,8 @@ module Google
 
         def merge(base_ss_key, diff_ss_key, ws_titles=[])
           session = self.session
-
           base_ss = session.spreadsheet_by_key(base_ss_key)
           diff_ss = session.spreadsheet_by_key(diff_ss_key)
-
           base_ss.merge(diff_ss, ws_titles)
         end
 
@@ -125,6 +80,49 @@ module Google
           return backup_collection
         end
       end
+    end
+  end
+end
+
+module GoogleDrive
+  class Spreadsheet
+    define_method 'can_merge?' do |target_ss, ws_titles=[]|
+      ws_titles.each do |ws_title|
+        base_ws   = self.worksheet_by_title(ws_title)
+        target_ws = target_ss.worksheet_by_title(ws_title)
+        unless base_ws.same_header?(target_ws) then
+          p "can not merge ws: #{target_ws.title}"
+          return false
+        end
+      end
+      return true
+    end
+
+    define_method 'merge' do |diff_ss, ws_titles=[]|
+      unless self.can_merge?(diff_ss, ws_titles) then
+        raise "can not merge ss: #{diff_ss.title}"
+      end
+
+      ws_titles.each do |ws_title|
+        base_ws = self.worksheet_by_title(ws_title)
+        diff_ws = diff_ss.worksheet_by_title(ws_title)
+
+        diff_rows = diff_ws.populated_rows
+        diff_rows.each do |diff_row|
+          row = base_ws.append_row
+          diff_ws.header.each do |column|
+            row.send("#{column}=", diff_row.send("#{column}"))
+          end
+        end
+
+        base_ws.save
+      end
+    end
+  end
+
+  class Worksheet
+    define_method 'same_header?' do |target_ws|
+      return self.header == target_ws.header
     end
   end
 end
