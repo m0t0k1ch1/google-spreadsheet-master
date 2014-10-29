@@ -59,7 +59,7 @@ module Google
               row.sheetname == diff_index_row.sheetname
             }.first
 
-            self.merge_worksheet(base_index_row.key, diff_index_row.key, diff_index_row.sheetname)
+            self.merge(base_index_row.key, diff_index_row.key, diff_index_row.sheetname)
           end
         end
 
