@@ -121,6 +121,14 @@ module Google
             backup_collection.add(backup_ss)
           end
 
+          backup_ss_keys = backup_index_ws.populated_rows.map { |row| row.key }.uniq
+          ss_keys.each do |ss_key|
+            if backup_ss_keys.include?(ss_key) then
+              backup_collection.delete
+              raise 'fail in duplication'
+            end
+          end
+
           backup_index_ws.save
 
           return backup_index_ss.key
