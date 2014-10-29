@@ -1,4 +1,4 @@
-require "google/spreadsheet/master/version"
+require 'google/spreadsheet/master/version'
 require 'google_drive/alias'
 
 module Google
@@ -40,34 +40,58 @@ module Google
           return GoogleDrive.login_with_oauth(self.access_token)
         end
 
-        def merge(base_ss_key, diff_ss_key, ws_titles=[])
+        def merge(base_ss_key, diff_ss_key, ws_title)
           session = self.session
           base_ss = session.spreadsheet_by_key(base_ss_key)
           diff_ss = session.spreadsheet_by_key(diff_ss_key)
-          base_ss.merge(diff_ss, ws_titles)
+          base_ss.merge(diff_ss, ws_title)
         end
 
-        def backup(base_index_ss_key, base_collection_url, backup_collection_name="backup")
+        def merge_by_index(base_index_ss_key, diff_index_ss_key)
+        end
+
+        def dry_merge_by_index(base_index_ss_key, diff_index_ss_key, base_collection_url)
+          session = self.session
+
+          backup_index_ss_key = self.backup(base_index_ss_key, base_collection_url)
+
+          backup_index_ss   = session.spreadsheet_by_key(backup_index_ss_key)
+          backup_index_ws   = backup_index_ss.worksheet_by_title(@index_ws_title)
+          backup_index_rows = backup_index_ws.populated_rows
+
+          diff_index_ss = session.spreadsheet_by_key(diff_index_ss_key)
+          diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
+
+          diff_index_ws.populated_rows.each do |diff_index_row|
+            backup_index_row = backup_index_rows.select { |row|
+              row.sheetname == diff_index_row.sheetname
+            }.first
+
+            self.merge(backup_index_row.key, diff_index_row.key, diff_index_row.sheetname)
+          end
+        end
+
+        def backup(index_ss_key, base_collection_url, backup_collection_name="backup")
           session = self.session
 
           base_collection   = session.collection_by_url(base_collection_url)
           backup_collection = base_collection.create_subcollection(backup_collection_name)
 
-          base_index_ss = session.spreadsheet_by_key(base_index_ss_key)
-          base_index_ws = base_index_ss.worksheet_by_title(@index_ws_title)
+          index_ss = session.spreadsheet_by_key(index_ss_key)
+          index_ws = index_ss.worksheet_by_title(@index_ws_title)
 
-          backup_index_ss = base_index_ss.duplicate(base_index_ss.title)
+          backup_index_ss = index_ss.duplicate(index_ss.title)
           backup_index_ws = backup_index_ss.worksheet_by_title(@index_ws_title)
 
           backup_collection.add(backup_index_ss)
 
-          base_ss_keys = base_index_ws.populated_rows.map { |row| row.key }
-          base_ss_keys.uniq.each do |base_ss_key|
-            base_ss   = session.spreadsheet_by_key(base_ss_key)
-            backup_ss = base_ss.duplicate(base_ss.title)
+          ss_keys = index_ws.populated_rows.map { |row| row.key }.uniq
+          ss_keys.each do |ss_key|
+            ss        = session.spreadsheet_by_key(ss_key)
+            backup_ss = ss.duplicate(ss.title)
 
             backup_index_ws.populated_rows.each do |row|
-              if row.key == base_ss_key then
+              if row.key == ss_key then
                 row.key = backup_ss.key
               end
             end
@@ -77,7 +101,7 @@ module Google
 
           backup_index_ws.save
 
-          return backup_collection
+          return backup_index_ss.key
         end
       end
     end
@@ -86,37 +110,33 @@ end
 
 module GoogleDrive
   class Spreadsheet
-    define_method 'can_merge?' do |target_ss, ws_titles=[]|
-      ws_titles.each do |ws_title|
-        base_ws   = self.worksheet_by_title(ws_title)
-        target_ws = target_ss.worksheet_by_title(ws_title)
-        unless base_ws.same_header?(target_ws) then
-          p "can not merge ws: #{target_ws.title}"
-          return false
-        end
+    define_method 'can_merge?' do |target_ss, ws_title|
+      base_ws   = self.worksheet_by_title(ws_title)
+      target_ws = target_ss.worksheet_by_title(ws_title)
+      unless base_ws.same_header?(target_ws) then
+        p "can not merge ws: #{target_ws.title}"
+        return false
       end
       return true
     end
 
-    define_method 'merge' do |diff_ss, ws_titles=[]|
-      unless self.can_merge?(diff_ss, ws_titles) then
+    define_method 'merge' do |diff_ss, ws_title|
+      unless self.can_merge?(diff_ss, ws_title) then
         raise "can not merge ss: #{diff_ss.title}"
       end
 
-      ws_titles.each do |ws_title|
-        base_ws = self.worksheet_by_title(ws_title)
-        diff_ws = diff_ss.worksheet_by_title(ws_title)
+      base_ws = self.worksheet_by_title(ws_title)
+      diff_ws = diff_ss.worksheet_by_title(ws_title)
 
-        diff_rows = diff_ws.populated_rows
-        diff_rows.each do |diff_row|
-          row = base_ws.append_row
-          diff_ws.header.each do |column|
-            row.send("#{column}=", diff_row.send("#{column}"))
-          end
+      diff_rows = diff_ws.populated_rows
+      diff_rows.each do |diff_row|
+        row = base_ws.append_row
+        diff_ws.header.each do |column|
+          row.send("#{column}=", diff_row.send("#{column}"))
         end
-
-        base_ws.save
       end
+
+      base_ws.save
     end
   end
 
