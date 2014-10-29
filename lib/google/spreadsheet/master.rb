@@ -40,7 +40,6 @@ module Google
 
         def session
           unless self.instance_variable_defined?(:@session) then
-            p 'create session'
             @session = GoogleDrive.login_with_oauth(self.access_token)
           end
 
