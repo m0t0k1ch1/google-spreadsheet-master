@@ -39,7 +39,11 @@ module Google
         end
 
         def session
-          return defined? @session ? @session : GoogleDrive.login_with_oauth(self.access_token)
+          unless self.instance_variable_defined?(:@session) then
+            @session = GoogleDrive.login_with_oauth(self.access_token)
+          end
+
+          return @session
         end
 
         def merge(base_ss_key, diff_ss_key, ws_title)
