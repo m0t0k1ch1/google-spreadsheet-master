@@ -147,17 +147,15 @@ module GoogleDrive
       base_ws   = self.worksheet_by_title(ws_title)
       target_ws = target_ss.worksheet_by_title(ws_title)
       unless base_ws.same_header?(target_ws) then
-        @logger.warn "can not merge worksheet: #{target_ws.title}"
+        logger = Logger.new(STDOUT)
+        logger.fatal "can not merge worksheet: #{target_ws.title}"
         return false
       end
       return true
     end
 
     define_method 'merge' do |diff_ss, ws_title|
-      unless self.can_merge?(diff_ss, ws_title) then
-        @logger.warn "can not merge spreadsheet: #{diff_ss.title}"
-        raise
-      end
+      raise unless self.can_merge?(diff_ss, ws_title)
 
       base_ws = self.worksheet_by_title(ws_title)
       diff_ws = diff_ss.worksheet_by_title(ws_title)
