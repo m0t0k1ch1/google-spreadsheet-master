@@ -8,6 +8,7 @@ module GoogleDrive
         base_ws   = self.worksheet_by_title(ws_title)
         target_ws = target_ss.worksheet_by_title(ws_title)
         unless base_ws.same_header?(target_ws) then
+          p "can not merge ws: #{target_ws.title}"
           return false
         end
       end
