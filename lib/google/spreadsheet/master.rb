@@ -1,6 +1,48 @@
 require "google/spreadsheet/master/version"
 require 'google_drive/alias'
 
+module GoogleDrive
+  class Spreadsheet
+    define_method 'can_merge?' do |target_ss, ws_titles=[]|
+      ws_titles.each do |ws_title|
+        base_ws   = self.worksheet_by_title(ws_title)
+        target_ws = target_ss.worksheet_by_title(ws_title)
+        unless base_ws.same_header?(target_ws) then
+          return false
+        end
+      end
+      return true
+    end
+
+    define_method 'merge' do |diff_ss, ws_titles=[]|
+      unless self.can_merge?(target_ss.ws_titles) then
+        raise "can not merge ss: #{ss.title}"
+      end
+
+      ws_titles.each do |ws_title|
+        base_ws = self.worksheet_by_title(ws_title)
+        diff_ws = diff_ss.worksheet_by_title(ws_title)
+
+        diff_rows = diff_ws.populated_rows
+        diff_rows.each do |diff_row|
+          row = base_ws.append_row
+          diff_ws.header.each do |column|
+            row.send("#{column}=", diff_row.send("#{column}"))
+          end
+        end
+
+        base_ws.save
+      end
+    end
+  end
+
+  class Worksheet
+    define_method 'same_header?' do |ws|
+      return self.header == ws.header
+    end
+  end
+end
+
 module Google
   module Spreadsheet
     module Master
@@ -40,33 +82,13 @@ module Google
           return GoogleDrive.login_with_oauth(self.access_token)
         end
 
-        def compare_header?(title, ss_key_1, ss_key_2)
-          session = self.session
-          ws1 = session.spreadsheet_by_key(ss_key_1).worksheet_by_title(title)
-          ws2 = session.spreadsheet_by_key(ss_key_2).worksheet_by_title(title)
-          return ws1.header == ws2.header
-        end
-
-        def merge(titles=[], base_ss_key, diff_ss_key)
+        def merge(base_ss_key, diff_ss_key, ws_titles=[])
           session = self.session
 
           base_ss = session.spreadsheet_by_key(base_ss_key)
           diff_ss = session.spreadsheet_by_key(diff_ss_key)
 
-          titles.each do |title|
-            base_ws = base_ss.worksheet_by_title(title)
-            diff_ws = diff_ss.worksheet_by_title(title)
-
-            diff_rows = diff_ws.populated_rows
-            diff_rows.each do |diff_row|
-              row = base_ws.append_row
-              diff_ws.header.each do |column|
-                row.send("#{column}=", diff_row.send("#{column}"))
-              end
-            end
-
-            base_ws.save
-          end
+          base_ss.merge(diff_ss, ws_titles)
         end
 
         def backup(base_index_ss_key, base_collection_url, backup_collection_name="backup")
@@ -99,7 +121,7 @@ module Google
 
           backup_index_ws.save
 
-          return backup_collection.human_url
+          return backup_collection
         end
       end
     end
