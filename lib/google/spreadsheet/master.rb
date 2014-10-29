@@ -28,7 +28,9 @@ module Google
             :issuer               => @issuer,
             :signing_key          => @signing_key,
           )
+
           client.authorization.fetch_access_token!
+
           return client
         end
 
@@ -42,33 +44,49 @@ module Google
 
         def merge(base_ss_key, diff_ss_key, ws_title)
           session = self.session
+
           base_ss = session.spreadsheet_by_key(base_ss_key)
           diff_ss = session.spreadsheet_by_key(diff_ss_key)
+
           base_ss.merge(diff_ss, ws_title)
         end
 
-        def merge_by_index(base_index_ss_key, diff_index_ss_key)
+        def merge_by_index_ws(base_index_ws, diff_index_ws)
+          base_index_rows = base_index_ws.populated_rows
+
+          diff_index_ws.populated_rows.each do |diff_index_row|
+            base_index_row = base_index_rows.select { |row|
+              row.sheetname == diff_index_row.sheetname
+            }.first
+
+            self.merge_worksheet(base_index_row.key, diff_index_row.key, diff_index_row.sheetname)
+          end
         end
 
-        def dry_merge_by_index(base_index_ss_key, diff_index_ss_key, base_collection_url)
+        def merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key)
           session = self.session
 
-          backup_index_ss_key = self.backup(base_index_ss_key, base_collection_url)
-
-          backup_index_ss   = session.spreadsheet_by_key(backup_index_ss_key)
-          backup_index_ws   = backup_index_ss.worksheet_by_title(@index_ws_title)
-          backup_index_rows = backup_index_ws.populated_rows
+          base_index_ss = session.spreadsheet_by_key(base_index_ss_key)
+          base_index_ws = base_index_ss.worksheet_by_title(@index_ws_title)
 
           diff_index_ss = session.spreadsheet_by_key(diff_index_ss_key)
           diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
 
-          diff_index_ws.populated_rows.each do |diff_index_row|
-            backup_index_row = backup_index_rows.select { |row|
-              row.sheetname == diff_index_row.sheetname
-            }.first
+          self.merge_by_index_ws(base_index_ws, diff_index_ws)
+        end
 
-            self.merge(backup_index_row.key, diff_index_row.key, diff_index_row.sheetname)
-          end
+        def dry_merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key, base_collection_url)
+          session = self.session
+
+          backup_index_ss_key = self.backup(base_index_ss_key, base_collection_url)
+
+          backup_index_ss = session.spreadsheet_by_key(backup_index_ss_key)
+          backup_index_ws = backup_index_ss.worksheet_by_title(@index_ws_title)
+
+          diff_index_ss = session.spreadsheet_by_key(diff_index_ss_key)
+          diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
+
+          self.merge_worksheets(backup_index_ws, diff_index_ws)
         end
 
         def backup(index_ss_key, base_collection_url, backup_collection_name="backup")
@@ -114,7 +132,7 @@ module GoogleDrive
       base_ws   = self.worksheet_by_title(ws_title)
       target_ws = target_ss.worksheet_by_title(ws_title)
       unless base_ws.same_header?(target_ws) then
-        p "can not merge ws: #{target_ws.title}"
+        p "can not merge worksheet: #{target_ws.title}"
         return false
       end
       return true
@@ -122,7 +140,7 @@ module GoogleDrive
 
     define_method 'merge' do |diff_ss, ws_title|
       unless self.can_merge?(diff_ss, ws_title) then
-        raise "can not merge ss: #{diff_ss.title}"
+        raise "can not merge spreadsheet: #{diff_ss.title}"
       end
 
       base_ws = self.worksheet_by_title(ws_title)
