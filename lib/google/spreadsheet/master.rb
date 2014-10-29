@@ -35,7 +35,7 @@ module Google
         end
 
         def access_token
-          return self.client.authorization.access_token
+          return defined? @session ? @session : self.client.authorization.access_token
         end
 
         def session
