@@ -84,15 +84,16 @@ module Google
         def dry_merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key, base_collection_url)
           session = self.session
 
-          backup_index_ss_key = self.backup(base_index_ss_key, base_collection_url)
-
-          backup_index_ss = session.spreadsheet_by_key(backup_index_ss_key)
-          backup_index_ws = backup_index_ss.worksheet_by_title(@index_ws_title)
+          backup_collection, backup_index_ws = self.backup(base_index_ss_key, base_collection_url)
 
           diff_index_ss = session.spreadsheet_by_key(diff_index_ss_key)
           diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
 
-          self.merge_by_index_ws(backup_index_ws, diff_index_ws)
+          begin
+            self.merge_by_index_ws(backup_index_ws, diff_index_ws)
+          rescue
+            backup_collection.delete
+          end
         end
 
         def backup(index_ss_key, base_collection_url, backup_collection_name="backup")
@@ -134,7 +135,7 @@ module Google
 
           backup_index_ws.save
 
-          return backup_index_ss.key
+          return backup_collection, backup_index_ws
         end
       end
     end
@@ -143,22 +144,15 @@ end
 
 module GoogleDrive
   class Spreadsheet
-    define_method 'can_merge?' do |target_ss, ws_title|
-      base_ws   = self.worksheet_by_title(ws_title)
-      target_ws = target_ss.worksheet_by_title(ws_title)
-      unless base_ws.same_header?(target_ws) then
-        logger = Logger.new(STDOUT)
-        logger.fatal "can not merge worksheet: #{target_ws.title}"
-        return false
-      end
-      return true
-    end
-
     define_method 'merge' do |diff_ss, ws_title|
       raise unless self.can_merge?(diff_ss, ws_title)
 
       base_ws = self.worksheet_by_title(ws_title)
       diff_ws = diff_ss.worksheet_by_title(ws_title)
+
+      unless diff_ws.same_header?(base_ws) then
+        raise "can not merge worksheet: #{diff_ws.title}"
+      end
 
       diff_rows = diff_ws.populated_rows
       diff_rows.each do |diff_row|
