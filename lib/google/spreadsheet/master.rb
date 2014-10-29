@@ -129,8 +129,7 @@ module Google
           ss_keys.each do |ss_key|
             if backup_ss_keys.include?(ss_key) then
               backup_collection.delete
-              @logger.warn 'fail in duplication'
-              raise
+              raise 'fail in duplication'
             end
           end
 
@@ -146,8 +145,6 @@ end
 module GoogleDrive
   class Spreadsheet
     define_method 'merge' do |diff_ss, ws_title|
-      raise unless self.can_merge?(diff_ss, ws_title)
-
       base_ws = self.worksheet_by_title(ws_title)
       diff_ws = diff_ss.worksheet_by_title(ws_title)
 
