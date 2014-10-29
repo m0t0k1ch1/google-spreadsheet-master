@@ -49,12 +49,16 @@ module Google
         end
 
         def merge(base_ss_key, diff_ss_key, ws_title)
+          @logger.info "#{ws_title} : start merge"
+
           session = self.session
 
           base_ss = session.spreadsheet_by_key(base_ss_key)
           diff_ss = session.spreadsheet_by_key(diff_ss_key)
 
           base_ss.merge(diff_ss, ws_title)
+
+          @logger.info "#{ws_title} : finish merge"
         end
 
         def merge_by_index_ws(base_index_ws, diff_index_ws)
@@ -84,7 +88,11 @@ module Google
         def dry_merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key, base_collection_url)
           session = self.session
 
-          backup_collection, backup_index_ws = self.backup(base_index_ss_key, base_collection_url)
+          begin
+            backup_collection, backup_index_ws = self.backup(base_index_ss_key, base_collection_url)
+          rescue => e
+            @logger.fatal e.message
+          end
 
           diff_index_ss = session.spreadsheet_by_key(diff_index_ss_key)
           diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
@@ -98,6 +106,8 @@ module Google
         end
 
         def backup(index_ss_key, base_collection_url, backup_collection_name="backup")
+          @logger.info 'start backup'
+
           session = self.session
 
           base_collection   = session.collection_by_url(base_collection_url)
@@ -134,6 +144,8 @@ module Google
           end
 
           backup_index_ws.save
+
+          @logger.info 'finish backup'
 
           return backup_collection, backup_index_ws
         end
