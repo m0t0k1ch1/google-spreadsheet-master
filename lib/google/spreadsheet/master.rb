@@ -86,7 +86,7 @@ module Google
           diff_index_ss = session.spreadsheet_by_key(diff_index_ss_key)
           diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
 
-          self.merge_worksheets(backup_index_ws, diff_index_ws)
+          self.merge_by_index_ws(backup_index_ws, diff_index_ws)
         end
 
         def backup(index_ss_key, base_collection_url, backup_collection_name="backup")
