@@ -35,11 +35,11 @@ module Google
         end
 
         def access_token
-          return defined? @session ? @session : self.client.authorization.access_token
+          return self.client.authorization.access_token
         end
 
         def session
-          return GoogleDrive.login_with_oauth(self.access_token)
+          return defined? @session ? @session : GoogleDrive.login_with_oauth(self.access_token)
         end
 
         def merge(base_ss_key, diff_ss_key, ws_title)
