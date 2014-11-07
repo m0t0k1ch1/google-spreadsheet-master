@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'logger'
 require 'google/spreadsheet/master/version'
 require 'google_drive/alias'
@@ -66,10 +67,11 @@ module Google
         def merge_by_index_ws(base_index_ws, diff_index_ws)
           base_index_rows = base_index_ws.populated_rows
 
-          diff_index_ws.populated_rows.each do |diff_index_row|
-            base_index_row = base_index_rows.select { |row|
-              row.sheetname == diff_index_row.sheetname
-            }.first
+          # TODO: check ID duplication
+
+          diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
+            base_index_row = base_index_rows[count]
+            next if base_index_row.key == diff_index_row.key
 
             self.merge(base_index_row.key, diff_index_row.key, diff_index_row.sheetname)
           end
