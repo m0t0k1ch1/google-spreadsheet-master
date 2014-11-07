@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 require 'logger'
 require 'google/spreadsheet/master/version'
 require 'google_drive/alias'
