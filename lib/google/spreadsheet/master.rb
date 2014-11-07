@@ -69,7 +69,7 @@ module Google
 
           base_index_rows = base_index_ws.populated_rows
 
-          diff_index_wa.populated_rows.each_with_index do |diff_index_row, count|
+          diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
             base_index_row = base_index_rows[count]
             next if base_index_row.key == diff_index_row.key
 
