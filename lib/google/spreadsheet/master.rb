@@ -10,8 +10,9 @@ module Google
       AUDIENCE               = 'https://accounts.google.com/o/oauth2/token'
       SCOPE                  = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
       INDEX_WS_TITLE_DEFAULT = 'table_map'
+      ROW_OFFSET_DEFAULT     = 0
 
-      attr_accessor :index_ws_title, :logger
+      attr_accessor :index_ws_title, :logger, :row_offset
 
       class Client
         def initialize(issuer, pem_path='client.pem')
@@ -19,6 +20,7 @@ module Google
           @signing_key    = Google::APIClient::KeyUtils.load_from_pem(pem_path, 'notasecret')
           @index_ws_title = INDEX_WS_TITLE_DEFAULT
           @logger         = Logger.new(STDOUT)
+          @row_offset     = ROW_OFFSET_DEFAULT
         end
 
         def client
@@ -56,7 +58,7 @@ module Google
           base_ss = session.spreadsheet_by_key(base_ss_key)
           diff_ss = session.spreadsheet_by_key(diff_ss_key)
 
-          base_ss.merge(diff_ss, ws_title)
+          base_ss.merge(diff_ss, ws_title, @row_offset)
 
           @logger.info "#{ws_title} : finish merge"
         end
@@ -156,7 +158,7 @@ end
 
 module GoogleDrive
   class Spreadsheet
-    define_method 'merge' do |diff_ss, ws_title|
+    define_method 'merge' do |diff_ss, ws_title, offset=0|
       base_ws = self.worksheet_by_title(ws_title)
       diff_ws = diff_ss.worksheet_by_title(ws_title)
 
@@ -165,8 +167,12 @@ module GoogleDrive
       end
 
       diff_rows = diff_ws.populated_rows
-      diff_rows.each do |diff_row|
-        row = base_ws.append_row
+      diff_rows.each_with_index do |diff_row, count|
+        if count == 0 && offset > 0 then
+          row = base_ws.append_row(offset)
+        else
+          row = base_ws.append_row
+        end
         diff_ws.header.each do |column|
           row.send("#{column}=", diff_row.send("#{column}"))
         end
