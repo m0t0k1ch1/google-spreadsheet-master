@@ -65,9 +65,27 @@ module Google
         end
 
         def merge_by_index_ws(base_index_ws, diff_index_ws)
+          session = self.session
+
           base_index_rows = base_index_ws.populated_rows
 
-          # TODO: check ID duplication
+          diff_index_wa.populated_rows.each_with_index do |diff_index_row, count|
+            base_index_row = base_index_rows[count]
+            next if base_index_row.key == diff_index_row.key
+
+            sheetname = base_index_row.sheetname
+
+            base_ws = session.spreadsheet_by_key(base_ss_row.key).worksheet_by_title(sheetname)
+            diff_ws = session.spreadsheet_by_key(diff_ss_row.key).worksheet_by_title(sheetname)
+
+            base_ids = base_ws.populated_rows.map { |row| row.id }
+            diff_ids = diff_ws.populated_rows.map { |row| row.id }
+
+            all_ids  = base_ids + diff_ids
+            uniq_ids = all_ids.uniq
+
+            raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
+          end
 
           diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
             base_index_row = base_index_rows[count]
@@ -86,7 +104,11 @@ module Google
           diff_index_ss = session.spreadsheet_by_key(diff_index_ss_key)
           diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
 
-          self.merge_by_index_ws(base_index_ws, diff_index_ws)
+          begin
+            self.merge_by_index_ws(base_index_ws, diff_index_ws)
+          rescue => e
+            @logger.fatal e.message
+          end
         end
 
         def dry_merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key, base_collection_url)
