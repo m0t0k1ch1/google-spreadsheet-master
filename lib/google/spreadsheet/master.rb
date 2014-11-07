@@ -5,16 +5,16 @@ require 'google_drive/alias'
 module Google
   module Spreadsheet
     module Master
-      APPLICATION_NAME       = 'master'
-      TOKEN_CREDENTIAL_URI   = 'https://accounts.google.com/o/oauth2/token'
-      AUDIENCE               = 'https://accounts.google.com/o/oauth2/token'
-      SCOPE                  = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
-      INDEX_WS_TITLE_DEFAULT = 'table_map'
-      ROW_OFFSET_DEFAULT     = 0
-
-      attr_accessor :index_ws_title, :logger, :row_offset
-
       class Client
+        APPLICATION_NAME       = 'master'
+        TOKEN_CREDENTIAL_URI   = 'https://accounts.google.com/o/oauth2/token'
+        AUDIENCE               = 'https://accounts.google.com/o/oauth2/token'
+        SCOPE                  = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
+        INDEX_WS_TITLE_DEFAULT = 'table_map'
+        ROW_OFFSET_DEFAULT     = 0
+
+        attr_accessor :index_ws_title, :logger, :row_offset
+
         def initialize(issuer, pem_path='client.pem')
           @issuer         = issuer
           @signing_key    = Google::APIClient::KeyUtils.load_from_pem(pem_path, 'notasecret')
