@@ -75,8 +75,8 @@ module Google
 
             sheetname = base_index_row.sheetname
 
-            base_ws = session.spreadsheet_by_key(base_ss_row.key).worksheet_by_title(sheetname)
-            diff_ws = session.spreadsheet_by_key(diff_ss_row.key).worksheet_by_title(sheetname)
+            base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
+            diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
 
             base_ids = base_ws.populated_rows.map { |row| row.id }
             diff_ids = diff_ws.populated_rows.map { |row| row.id }
