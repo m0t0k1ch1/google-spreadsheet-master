@@ -186,7 +186,7 @@ module GoogleDrive
       diff_ws = diff_ss.worksheet_by_title(ws_title)
 
       unless diff_ws.same_header?(base_ws) then
-        raise "can not merge worksheet: #{diff_ws.title}"
+        raise "#{diff_ws.title} : can not merge worksheet"
       end
 
       diff_rows = diff_ws.populated_rows
