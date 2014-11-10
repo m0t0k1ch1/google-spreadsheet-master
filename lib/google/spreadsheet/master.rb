@@ -75,6 +75,8 @@ module Google
 
             sheetname = base_index_row.sheetname
 
+            @logger.info "#{sheetname} : start check"
+
             base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
             diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
 
@@ -85,6 +87,8 @@ module Google
             uniq_ids = all_ids.uniq
 
             raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
+
+            @logger.info "#{sheetname} : finish check"
           end
 
           diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
