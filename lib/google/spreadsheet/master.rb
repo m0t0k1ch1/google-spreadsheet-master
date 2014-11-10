@@ -191,10 +191,14 @@ module GoogleDrive
       end
 
       diff_rows = diff_ws.populated_rows
-      diff_rows.each_with_index do |diff_row, count|
+
+      count = 0
+      diff_rows.each do |diff_row|
         next if diff_row.id.empty?
 
-        if count == 0 && offset > 0 then
+        count += 1
+
+        if count == 1 && offset > 0 then
           row = base_ws.append_row(offset)
         else
           row = base_ws.append_row
