@@ -78,8 +78,8 @@ module Google
             base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
             diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
 
-            base_ids = base_ws.populated_rows.map { |row| row.id }
-            diff_ids = diff_ws.populated_rows.map { |row| row.id }
+            base_ids = base_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+            diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
 
             all_ids  = base_ids + diff_ids
             uniq_ids = all_ids.uniq
