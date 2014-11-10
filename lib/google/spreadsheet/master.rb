@@ -214,11 +214,35 @@ module GoogleDrive
 
         row_update_num = 5
         if count % row_update_num == 0 then
-          base_ws.save
+          begin
+            base_ws.save
+          rescue
+            begin
+              base_ws.save
+            rescue
+              begin
+                base_ws.save
+              rescue => e
+                @logger.fatal e.message
+              end
+            end
+          end
         end
       end
 
-      base_ws.save
+      begin
+        base_ws.save
+      rescue
+        begin
+          base_ws.save
+        rescue
+          begin
+            base_ws.save
+          rescue => e
+            @logger.fatal e.message
+          end
+        end
+      end
     end
   end
 
