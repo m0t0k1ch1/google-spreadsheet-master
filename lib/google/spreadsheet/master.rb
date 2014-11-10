@@ -69,27 +69,27 @@ module Google
 
           base_index_rows = base_index_ws.populated_rows
 
-          diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
-            base_index_row = base_index_rows[count]
-            next if base_index_row.key == diff_index_row.key
+          # diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
+          #   base_index_row = base_index_rows[count]
+          #   next if base_index_row.key == diff_index_row.key
 
-            sheetname = base_index_row.sheetname
+          #   sheetname = base_index_row.sheetname
 
-            @logger.info "#{sheetname} : start check"
+          #   @logger.info "#{sheetname} : start check"
 
-            base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
-            diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
+          #   base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
+          #   diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
 
-            base_ids = base_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
-            diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+          #   base_ids = base_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+          #   diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
 
-            all_ids  = base_ids + diff_ids
-            uniq_ids = all_ids.uniq
+          #   all_ids  = base_ids + diff_ids
+          #   uniq_ids = all_ids.uniq
 
-            raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
+          #   raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
 
-            @logger.info "#{sheetname} : finish check"
-          end
+          #   @logger.info "#{sheetname} : finish check"
+          # end
 
           diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
             base_index_row = base_index_rows[count]
