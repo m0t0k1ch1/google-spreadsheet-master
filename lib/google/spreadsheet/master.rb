@@ -203,6 +203,9 @@ module GoogleDrive
           row.send("#{column}=", diff_row.send("#{column}"))
         end
 
+        p count
+        p @update_row_num
+
         if count % @update_row_num == 0 then
           base_ws.save
         end
