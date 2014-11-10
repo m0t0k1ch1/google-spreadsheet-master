@@ -12,6 +12,7 @@ module Google
         SCOPE                  = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
         INDEX_WS_TITLE_DEFAULT = 'table_map'
         ROW_OFFSET_DEFAULT     = 0
+        UPDATE_ROW_NUM_DEFAULT = 5
 
         attr_accessor :index_ws_title, :logger, :row_offset
 
@@ -21,6 +22,7 @@ module Google
           @index_ws_title = INDEX_WS_TITLE_DEFAULT
           @logger         = Logger.new(STDOUT)
           @row_offset     = ROW_OFFSET_DEFAULT
+          @update_row_num = UPDATE_ROW_NUM_DEFAULT
         end
 
         def client
@@ -196,8 +198,13 @@ module GoogleDrive
         else
           row = base_ws.append_row
         end
+
         diff_ws.header.each do |column|
           row.send("#{column}=", diff_row.send("#{column}"))
+        end
+
+        if count % @update_row_num == 0 then
+          base_ws.save
         end
       end
 
