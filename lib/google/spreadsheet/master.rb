@@ -22,7 +22,6 @@ module Google
           @index_ws_title = INDEX_WS_TITLE_DEFAULT
           @logger         = Logger.new(STDOUT)
           @row_offset     = ROW_OFFSET_DEFAULT
-          @update_row_num = UPDATE_ROW_NUM_DEFAULT
         end
 
         def client
@@ -203,10 +202,8 @@ module GoogleDrive
           row.send("#{column}=", diff_row.send("#{column}"))
         end
 
-        p count
-        p @update_row_num
-
-        if count % @update_row_num == 0 then
+        row_update_num = 5
+        if count % row_update_num == 0 then
           base_ws.save
         end
       end
