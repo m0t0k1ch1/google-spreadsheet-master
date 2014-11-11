@@ -206,7 +206,7 @@ module GoogleDrive
           row = base_ws.append_row
         end
 
-        diff_ws.header.each do |column|
+        diff_ws.header.select { |column| !column.empty? }.each do |column|
           row.send("#{column}=", diff_row.send("#{column}"))
         end
 
