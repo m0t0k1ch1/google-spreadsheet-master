@@ -222,6 +222,9 @@ module GoogleDrive
 
   class Worksheet
     define_method 'same_header?' do |target_ws|
+      p self.header
+      p target.header
+
       return self.header == target_ws.header
     end
   end
