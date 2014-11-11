@@ -73,9 +73,6 @@ module Google
             base_index_row = base_index_rows[count]
             next if base_index_row.key == diff_index_row.key
 
-            p base_index_row.key
-            p diff_index_row.key
-
             sheetname = base_index_row.sheetname
 
             @logger.info "#{sheetname} : start check"
@@ -225,14 +222,8 @@ module GoogleDrive
 
   class Worksheet
     define_method 'same_header?' do |target_ws|
-      p self.header
-      p target_ws.header
-
       self_header   = self.header.select { |column| !column.empty? }
       target_header = target_ws.header.select { |column| !column.empty? }
-
-      p self_header
-      p target_header
 
       return self_header == target_header
     end
