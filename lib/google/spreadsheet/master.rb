@@ -222,8 +222,8 @@ module GoogleDrive
 
   class Worksheet
     define_method 'same_header?' do |target_ws|
-      self_header   = self.header.map { |column| !column.empty? }
-      target_header = target_ws.header.map { |column| !column.empty? }
+      self_header   = self.header.select { |column| !column.empty? }
+      target_header = target_ws.header.select { |column| !column.empty? }
 
       p self_header
       p target_header
