@@ -222,10 +222,10 @@ module GoogleDrive
 
   class Worksheet
     define_method 'same_header?' do |target_ws|
-      p self.header
-      p target_ws.header
+      self_header   = self.header.map { |column| !column.empty? }
+      target_header = target_ws.header.map { |column| !column.empty? }
 
-      return self.header == target_ws.header
+      return self_header == target_header
     end
   end
 end
