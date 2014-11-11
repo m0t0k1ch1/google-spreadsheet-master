@@ -69,27 +69,29 @@ module Google
 
           base_index_rows = base_index_ws.populated_rows
 
-          # diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
-          #   base_index_row = base_index_rows[count]
-          #   next if base_index_row.key == diff_index_row.key
+          diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
+            base_index_row = base_index_rows[count]
+            next if base_index_row.key == diff_index_row.key
 
-          #   sheetname = base_index_row.sheetname
+            sheetname = base_index_row.sheetname
 
-          #   @logger.info "#{sheetname} : start check"
+            @logger.info "#{sheetname} : start check"
 
-          #   base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
-          #   diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
+            base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
+            diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
 
-          #   base_ids = base_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
-          #   diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+            raise "#{diff_ws.title} : different header" unless diff_ws.same_header?(base_ws)
 
-          #   all_ids  = base_ids + diff_ids
-          #   uniq_ids = all_ids.uniq
+            base_ids = base_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+            diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
 
-          #   raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
+            all_ids  = base_ids + diff_ids
+            uniq_ids = all_ids.uniq
 
-          #   @logger.info "#{sheetname} : finish check"
-          # end
+            raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
+
+            @logger.info "#{sheetname} : finish check"
+          end
 
           diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
             base_index_row = base_index_rows[count]
@@ -190,10 +192,6 @@ module GoogleDrive
       base_ws = self.worksheet_by_title(ws_title)
       diff_ws = diff_ss.worksheet_by_title(ws_title)
 
-      unless diff_ws.same_header?(base_ws) then
-        raise "#{diff_ws.title} : can not merge worksheet"
-      end
-
       diff_rows = diff_ws.populated_rows
 
       count = 0
@@ -214,35 +212,11 @@ module GoogleDrive
 
         row_update_num = 5
         if count % row_update_num == 0 then
-          begin
-            base_ws.save
-          rescue
-            begin
-              base_ws.save
-            rescue
-              begin
-                base_ws.save
-              rescue => e
-                @logger.fatal e.message
-              end
-            end
-          end
+          base_ws.save
         end
       end
 
-      begin
-        base_ws.save
-      rescue
-        begin
-          base_ws.save
-        rescue
-          begin
-            base_ws.save
-          rescue => e
-            @logger.fatal e.message
-          end
-        end
-      end
+      base_ws.save
     end
   end
 
