@@ -225,6 +225,9 @@ module GoogleDrive
       self_header   = self.header.map { |column| !column.empty? }
       target_header = target_ws.header.map { |column| !column.empty? }
 
+      p self_header
+      p target_header
+
       return self_header == target_header
     end
   end
