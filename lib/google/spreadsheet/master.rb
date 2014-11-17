@@ -64,7 +64,7 @@ module Google
           @logger.info "#{ws_title} : finish merge"
         end
 
-        def merge_by_index_ws(base_index_ws, diff_index_ws)
+        def merge_by_index_ws(base_index_ws, diff_index_ws, target_sheetname=nil)
           session = self.session
 
           base_index_rows = base_index_ws.populated_rows
@@ -74,6 +74,7 @@ module Google
             next if base_index_row.key == diff_index_row.key
 
             sheetname = base_index_row.sheetname
+            next if !target_sheetname.nil? && sheetname != target_sheetname
 
             @logger.info "#{sheetname} : start check"
 
@@ -97,11 +98,14 @@ module Google
             base_index_row = base_index_rows[count]
             next if base_index_row.key == diff_index_row.key
 
-            self.merge(base_index_row.key, diff_index_row.key, diff_index_row.sheetname)
+            sheetname = base_index_row.sheetname
+            next if !target_sheetname.nil? && sheetname != target_sheetname
+
+            self.merge(base_index_row.key, diff_index_row.key, sheetname)
           end
         end
 
-        def merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key)
+        def merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key, target_sheetname=nil)
           session = self.session
 
           base_index_ss = session.spreadsheet_by_key(base_index_ss_key)
@@ -111,7 +115,7 @@ module Google
           diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
 
           begin
-            self.merge_by_index_ws(base_index_ws, diff_index_ws)
+            self.merge_by_index_ws(base_index_ws, diff_index_ws, target_sheetname)
           rescue => e
             @logger.fatal e.message
           end
