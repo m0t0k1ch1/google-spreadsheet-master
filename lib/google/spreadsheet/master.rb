@@ -218,6 +218,8 @@ module GoogleDrive
         if count % row_update_num == 0 then
           base_ws.save
         end
+
+        sleep(1)
       end
 
       base_ws.save
