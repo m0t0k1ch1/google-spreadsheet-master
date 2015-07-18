@@ -70,11 +70,15 @@ module Google
           base_index_rows = base_index_ws.populated_rows
 
           diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
-            base_index_row = base_index_rows[count]
-            next if base_index_row.key == diff_index_row.key
+            base_index_row = nil
+            base_index_rows.each do |index_row|
+              if base_index_row.sheetname == sheetname then
+                base_index_row = index_row
+              end
+            end
 
-            sheetname = base_index_row.sheetname
-            next if !target_sheetname.nil? && sheetname != target_sheetname
+            raise "#{sheetname} : no corresponding base index row" unless base_index_row
+            raise "#{sheetname} : same key" if base_index_row.key == diff_index_row.key
 
             @logger.info "#{sheetname} : start check"
 
