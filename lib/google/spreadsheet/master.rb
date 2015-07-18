@@ -167,6 +167,7 @@ module Google
             end
 
             backup_collection.add(backup_ss)
+            backup_ss.delete
           end
 
           backup_ss_keys = backup_index_ws.populated_rows.map { |row| row.key }.uniq
