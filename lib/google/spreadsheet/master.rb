@@ -64,52 +64,46 @@ module Google
           @logger.info "#{ws_title} : finish merge"
         end
 
-        def merge_by_index_ws(base_index_ws, diff_index_ws, target_sheetname=nil)
+        def merge_by_index_ws(base_index_ws, diff_index_ws, sheetname)
           session = self.session
 
           base_index_rows = base_index_ws.populated_rows
+          diff_index_rows = diff_index_ws.populated_rows
 
-          diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
-            base_index_row = nil
-            base_index_rows.each do |index_row|
-              if index_row.sheetname == sheetname then
-                base_index_row = index_row
-              end
-            end
+          target_diff_index_rows = diff_index_rows.select { |row| row.sheetname == sheetname }
+          raise "#{sheetname} : sheetname duplication in diff index ws" if target_diff_index_rows.count > 1
 
-            raise "#{sheetname} : no corresponding base index row" unless base_index_row
-            raise "#{sheetname} : same key" if base_index_row.key == diff_index_row.key
+          diff_index_row = target_diff_index_rows.first
+          raise "#{sheetname} : no corresponding diff index row" unless diff_index_row
 
-            @logger.info "#{sheetname} : start check"
+          target_base_index_rows = base_index_rows.select { |row| row.sheetname == sheetname }
+          raise "#{sheetname} : sheetname duplication in base index ws" if target_base_index_rows.count > 1
 
-            base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
-            diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
+          base_index_row = target_base_index_rows.first
+          raise "#{sheetname} : no corresponding base index row" unless base_index_row
+          raise "#{sheetname} : same key" if base_index_row.key == diff_index_row.key
 
-            raise "#{diff_ws.title} : different header" unless diff_ws.same_header?(base_ws)
+          @logger.info "#{sheetname} : start check"
 
-            base_ids = base_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
-            diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+          base_ws = session.spreadsheet_by_key(base_index_row.key).worksheet_by_title(sheetname)
+          diff_ws = session.spreadsheet_by_key(diff_index_row.key).worksheet_by_title(sheetname)
 
-            all_ids  = base_ids + diff_ids
-            uniq_ids = all_ids.uniq
+          raise "#{diff_ws.title} : different header" unless diff_ws.same_header?(base_ws)
 
-            raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
+          base_ids = base_index_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+          diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
 
-            @logger.info "#{sheetname} : finish check"
-          end
+          all_ids  = base_ids + diff_ids
+          uniq_ids = all_ids.uniq
 
-          diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
-            base_index_row = base_index_rows[count]
-            next if base_index_row.key == diff_index_row.key
+          raise "#{sheetname} : id duplication" if all_ids.size != uniq_ids.size
 
-            sheetname = base_index_row.sheetname
-            next if !target_sheetname.nil? && sheetname != target_sheetname
+          @logger.info "#{sheetname} : finish check"
 
-            self.merge(base_index_row.key, diff_index_row.key, sheetname)
-          end
+          self.merge(base_index_row.key, diff_index_row.key, sheetname)
         end
 
-        def merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key, target_sheetname=nil)
+        def merge_by_index_ss_key(base_index_ss_key, diff_index_ss_key, sheetname)
           session = self.session
 
           base_index_ss = session.spreadsheet_by_key(base_index_ss_key)
@@ -119,7 +113,7 @@ module Google
           diff_index_ws = diff_index_ss.worksheet_by_title(@index_ws_title)
 
           begin
-            self.merge_by_index_ws(base_index_ws, diff_index_ws, target_sheetname)
+            self.merge_by_index_ws(base_index_ws, diff_index_ws, sheetname)
           rescue => e
             @logger.fatal e.message
           end
