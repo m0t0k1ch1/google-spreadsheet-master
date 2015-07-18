@@ -6,13 +6,15 @@ module Google
   module Spreadsheet
     module Master
       class Client
-        APPLICATION_NAME       = 'master'
-        TOKEN_CREDENTIAL_URI   = 'https://accounts.google.com/o/oauth2/token'
-        AUDIENCE               = 'https://accounts.google.com/o/oauth2/token'
-        SCOPE                  = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
-        INDEX_WS_TITLE_DEFAULT = 'table_map'
-        ROW_OFFSET_DEFAULT     = 0
-        UPDATE_ROW_NUM_DEFAULT = 5
+        APPLICATION_NAME          = 'google-spreadsheet-master'
+        TOKEN_CREDENTIAL_URI      = 'https://accounts.google.com/o/oauth2/token'
+        AUDIENCE                  = 'https://accounts.google.com/o/oauth2/token'
+        SCOPE                     = 'https://www.googleapis.com/auth/drive https://spreadsheets.google.com/feeds https://docs.google.com/feeds'
+        ORIGINAL_COLLECTION_TITLE = 'release'
+        BACKUP_COLLECTION_TITLE   = 'backup'
+        INDEX_WS_TITLE_DEFAULT    = 'table_map'
+        ROW_OFFSET_DEFAULT        = 0
+        UPDATE_ROW_NUM_DEFAULT    = 5
 
         attr_accessor :index_ws_title, :logger, :row_offset
 
@@ -139,26 +141,29 @@ module Google
           end
         end
 
-        def backup(index_ss_key, base_collection_url, backup_collection_name="backup")
+        def backup(index_ss_key, base_collection_url, collection_title)
           @logger.info 'start backup'
 
           session = self.session
 
           base_collection   = session.collection_by_url(base_collection_url)
-          backup_collection = base_collection.create_subcollection(backup_collection_name)
+          origin_collection = base_collection.subcollection_by_title(ORIGINAL_COLLECTION_TITLE)
+          backup_collection = base_collection.subcollection_by_title(BACKUP_COLLECTION_TITLE)
+          collection        = backup_collection.create_subcollection(collection_title)
 
           index_ss = session.spreadsheet_by_key(index_ss_key)
           index_ws = index_ss.worksheet_by_title(@index_ws_title)
 
-          backup_index_ss = index_ss.duplicate(index_ss.title)
+          backup_index_ss = index_ss.copy(index_ss.title)
           backup_index_ws = backup_index_ss.worksheet_by_title(@index_ws_title)
 
-          backup_collection.add(backup_index_ss)
+          collection.add(backup_index_ss)
+          @logger.info "backup #{index_ss.title}"
 
           ss_keys = index_ws.populated_rows.map { |row| row.key }.uniq
           ss_keys.each do |ss_key|
             ss        = session.spreadsheet_by_key(ss_key)
-            backup_ss = ss.duplicate(ss.title)
+            backup_ss = ss.copy(ss.title)
 
             backup_index_ws.populated_rows.each do |row|
               if row.key == ss_key then
@@ -166,18 +171,21 @@ module Google
               end
             end
 
-            backup_collection.add(backup_ss)
+            collection.add(backup_ss)
+            origin_collection.remove(backup_ss)
+            @logger.info "backup #{ss.title}"
           end
 
           backup_ss_keys = backup_index_ws.populated_rows.map { |row| row.key }.uniq
           ss_keys.each do |ss_key|
             if backup_ss_keys.include?(ss_key) then
-              backup_collection.delete
+              collection.delete
               raise 'fail in duplication'
             end
           end
 
           backup_index_ws.save
+          origin_collection.remove(backup_index_ss)
 
           @logger.info 'finish backup'
 
