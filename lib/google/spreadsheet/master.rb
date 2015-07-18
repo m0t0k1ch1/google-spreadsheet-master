@@ -72,7 +72,7 @@ module Google
           diff_index_ws.populated_rows.each_with_index do |diff_index_row, count|
             base_index_row = nil
             base_index_rows.each do |index_row|
-              if base_index_row.sheetname == sheetname then
+              if index_row.sheetname == sheetname then
                 base_index_row = index_row
               end
             end
