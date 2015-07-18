@@ -158,7 +158,7 @@ module Google
           backup_index_ws = backup_index_ss.worksheet_by_title(@index_ws_title)
 
           collection.add(backup_index_ss)
-          @logger.info "backup #{index_ss.title}"
+          @logger.info "#{index_ss.title} : done"
 
           ss_keys = index_ws.populated_rows.map { |row| row.key }.uniq
           ss_keys.each do |ss_key|
@@ -173,7 +173,7 @@ module Google
 
             collection.add(backup_ss)
             origin_collection.remove(backup_ss)
-            @logger.info "backup #{ss.title}"
+            @logger.info "#{ss.title} : done"
           end
 
           backup_ss_keys = backup_index_ws.populated_rows.map { |row| row.key }.uniq
