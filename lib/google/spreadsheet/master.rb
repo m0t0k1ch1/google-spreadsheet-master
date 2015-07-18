@@ -179,6 +179,7 @@ module Google
           end
 
           backup_index_ws.save
+          base_collection.remove(backup_index_ss)
 
           @logger.info 'finish backup'
 
