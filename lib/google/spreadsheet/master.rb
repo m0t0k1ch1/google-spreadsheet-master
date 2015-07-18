@@ -90,7 +90,7 @@ module Google
 
           raise "#{diff_ws.title} : different header" unless diff_ws.same_header?(base_ws)
 
-          base_ids = base_index_rows.select { |row| !row.id.empty? }.map { |row| row.id }
+          base_ids = base_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
           diff_ids = diff_ws.populated_rows.select { |row| !row.id.empty? }.map { |row| row.id }
 
           all_ids  = base_ids + diff_ids
